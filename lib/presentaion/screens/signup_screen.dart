@@ -11,6 +11,7 @@ class SignUpScreen extends StatelessWidget {
   SignUpScreen({
     super.key,
   });
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -20,39 +21,55 @@ class SignUpScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: emailCtrl,
-              decoration: InputDecoration(labelText: "Enter new Email"),
+            // add validation to the email and password fields
+            Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: emailCtrl,
+                    decoration: InputDecoration(
+                      labelText: "Enter new Email",
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an email';
+                      }
+                      // Add more validation if needed
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: passCtrl,
+                    obscureText: true,
+                    decoration:
+                        InputDecoration(labelText: "Enter new Password"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      // Add more validation if needed
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            TextField(
-              controller: passCtrl,
-              obscureText: true,
-              decoration: InputDecoration(labelText: "Enter new Password"),
-            ),
+
             SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  if (emailCtrl.text.isEmpty || passCtrl.text.isEmpty) {
-                    Get.snackbar(
-                      "Signup Error",
-                      "Please fill all fields",
-                      backgroundColor: Colors.red,
-                    );
-                    return;
-                  }
-                  if (passCtrl.text.length < 6) {
-                    Get.snackbar(
-                      "Signup Error",
-                      "Password must be at least 6 characters",
-                      backgroundColor: Colors.red,
-                    );
-                    return;
-                  }
                   // Call the createUser method from AuthController
-                  authCtrl.createUser(emailCtrl.text, passCtrl.text);
+                  if (_formKey.currentState!.validate()) {
+                    authCtrl.createUser(emailCtrl.text, passCtrl.text);
+                  }
                 },
                 child: Text("Sign Up"),
               ),

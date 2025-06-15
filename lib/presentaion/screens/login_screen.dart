@@ -13,6 +13,8 @@ class LoginScreen extends StatelessWidget {
     super.key,
   });
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,38 +23,51 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: emailCtrl,
-              decoration: InputDecoration(labelText: "Enter Email"),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: passCtrl,
-              obscureText: true,
-              decoration: InputDecoration(labelText: "Enter Password"),
+            Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: emailCtrl,
+                    decoration: InputDecoration(labelText: "Enter Email"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an email';
+                      }
+                      // Add more validation if needed
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: passCtrl,
+                    obscureText: true,
+                    decoration: InputDecoration(labelText: "Enter Password"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      // Add more validation if needed
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  if (emailCtrl.text.isEmpty || passCtrl.text.isEmpty) {
-                    Get.snackbar(
-                      "Login Error!",
-                      "Please fill all fields",
-                      backgroundColor: Colors.red,
-                    );
-                    return;
-                  }
-                  if (passCtrl.text.length < 6) {
-                    Get.snackbar("Login Error!",
-                        "Password must be at least 6 characters",
-                        backgroundColor: Colors.red, colorText: Colors.white);
-                    return;
-                  }
+                  // Validate the form before proceeding by global key
 
-                  // Call the login method from AuthController
-                  await authCtrl.login(emailCtrl.text, passCtrl.text);
+                  if (_formKey.currentState!.validate()) {
+                    await authCtrl.login(emailCtrl.text, passCtrl.text);
+                  }
                 },
                 child: Text("Sign In"),
               ),

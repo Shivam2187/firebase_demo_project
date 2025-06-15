@@ -13,6 +13,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('Login screen has email and password fields', (tester) async {
     await tester.pumpWidget(MaterialApp(home: LoginScreen()));
-    expect(find.byType(TextField), findsNWidgets(2));
+    expect(find.byType(TextFormField), findsNWidgets(2));
   });
 }

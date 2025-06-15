@@ -27,7 +27,9 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       title: 'Task Manager',
-      home: LoginScreen(),
+      home: FirebaseAuth.instance.currentUser == null
+          ? LoginScreen()
+          : TaskScreen(),
     );
   }
 }
@@ -45,10 +47,10 @@ class AuthController extends GetxController {
 
   Future<void> createUser(String email, String password) async {
     try {
-      final user = await _auth.createUserWithEmailAndPassword(
+      await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       Get.offAll(() => TaskScreen());
-      Get.snackbar("Signup Successful", "Welcome ${user.user?.email}",
+      Get.snackbar("Signup Successful", "Welcome",
           backgroundColor: Colors.green);
     } catch (e) {
       Get.snackbar("Signup Failed", e.toString(), backgroundColor: Colors.red);
@@ -59,7 +61,7 @@ class AuthController extends GetxController {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       Get.offAll(() => TaskScreen());
-      Get.snackbar("Login Successful", "Welcome back $email",
+      Get.snackbar("Login Successful", "Welcome Back",
           backgroundColor: Colors.green);
     } catch (e) {
       Get.snackbar("User Not Found", e.toString(), backgroundColor: Colors.red);
@@ -82,23 +84,46 @@ class TaskController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final tasks = <Map<String, dynamic>>[].obs;
 
-  void fetchTasks() async {
+  Future<void> fetchTasks() async {
     final querySnapshot = await _firestore.collection("tasks").get();
-    tasks.assignAll(querySnapshot.docs.map((doc) => doc.data()));
+    tasks.assignAll(querySnapshot.docs
+        .map((doc) => {
+              'id': doc.id,
+              'title': doc['title'],
+            })
+        .toList());
   }
 
-  void addTask(String title) async {
-    await _firestore.collection("tasks").add({"title": title});
-    fetchTasks();
+  Future<bool> addTask(String title) async {
+    try {
+      await _firestore.collection("tasks").add({"title": title});
+      fetchTasks();
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
   }
 
-  void updateTask(String id, String newTitle) async {
-    await _firestore.collection("tasks").doc(id).update({"title": newTitle});
-    fetchTasks();
+  Future<bool> updateTask(String id, String newTitle) async {
+    try {
+      await _firestore.collection("tasks").doc(id).update({"title": newTitle});
+      fetchTasks();
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
   }
 
-  void deleteTask(String id) async {
-    await _firestore.collection("tasks").doc(id).delete();
-    fetchTasks();
+  Future<bool> deleteTask(String id) async {
+    try {
+      await _firestore.collection("tasks").doc(id).delete();
+      fetchTasks();
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
   }
 }
