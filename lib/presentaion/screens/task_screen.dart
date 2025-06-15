@@ -4,18 +4,34 @@ import 'package:get/get.dart';
 import 'package:firebase_demo_project/controllers/auth_controller.dart';
 import 'package:firebase_demo_project/controllers/task_controller.dart';
 
-class TaskScreen extends StatelessWidget {
-  final taskCtrl = Get.put(TaskController());
-  final textCtrl = TextEditingController();
+class TaskScreen extends StatefulWidget {
+  const TaskScreen({super.key});
 
-  TaskScreen({super.key});
+  @override
+  State<TaskScreen> createState() => _TaskScreenState();
+}
+
+class _TaskScreenState extends State<TaskScreen> {
+  final taskCtrl = Get.put(TaskController());
+
+  final textCtrl = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
-  Widget build(BuildContext context) {
-    taskCtrl.fetchTasks();
+  void dispose() {
+    textCtrl.dispose();
+    super.dispose();
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    taskCtrl.fetchTasks();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
