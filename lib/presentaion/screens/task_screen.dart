@@ -1,4 +1,3 @@
-// lib/screens/task_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,39 +8,62 @@ class TaskScreen extends StatelessWidget {
   final taskCtrl = Get.put(TaskController());
   final textCtrl = TextEditingController();
 
-  TaskScreen({
-    super.key,
-  });
+  TaskScreen({super.key});
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     taskCtrl.fetchTasks();
+
     return Scaffold(
-      appBar: AppBar(title: Text("Your Tasks"), actions: [
-        IconButton(
+      backgroundColor: const Color(0xFFF4F6FA),
+      appBar: AppBar(
+        title: const Text("Your Tasks"),
+        actions: [
+          IconButton(
             onPressed: () => Get.find<AuthController>().signOut(),
-            icon: Icon(Icons.logout)),
-      ]),
+            icon: const Icon(Icons.logout),
+            tooltip: "Logout",
+          ),
+        ],
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        elevation: 4,
+      ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: Form(
                     key: _formKey,
-                    autovalidateMode: AutovalidateMode.always,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: TextFormField(
                       controller: textCtrl,
-                      decoration:
-                          InputDecoration(labelText: "New Task Details"),
+                      decoration: const InputDecoration(
+                        labelText: "Enter New Task Details",
+                        hintText: "Enter task details",
+                        //border: InputBorder.none,
+                        prefixIcon: Icon(Icons.task_alt_outlined),
+                      ),
                       validator: (value) {
-                        if (value == null) return null;
-                        if (value.isEmpty) {
-                          return 'Please enter a task Details';
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter task details';
                         }
                         return null;
                       },
@@ -49,21 +71,25 @@ class TaskScreen extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add),
+                  icon: const Icon(Icons.add_circle, color: Colors.indigo),
                   onPressed: () async {
-                    bool status = false;
-                    if (_formKey.currentState!.validate() &&
-                        textCtrl.text.isNotEmpty) {
-                      status = await taskCtrl.addTask(textCtrl.text);
-                    }
-
-                    if (status) {
-                      Get.snackbar("Task Added", "Task added successfully",
-                          backgroundColor: Colors.green);
-                      textCtrl.clear();
-                    } else {
-                      Get.snackbar("Task Error", "Failed to add task",
-                          backgroundColor: Colors.red);
+                    FocusScope.of(context).unfocus();
+                    if (_formKey.currentState?.validate() ?? false) {
+                      final status = await taskCtrl.addTask(textCtrl.text);
+                      if (status) {
+                        textCtrl.text = '';
+                        Get.snackbar(
+                          "Success",
+                          "Task added successfully",
+                          backgroundColor: Colors.green,
+                        );
+                      } else {
+                        Get.snackbar(
+                          "Error",
+                          "Failed to add task",
+                          backgroundColor: Colors.red,
+                        );
+                      }
                     }
                   },
                 )
@@ -72,98 +98,130 @@ class TaskScreen extends StatelessWidget {
           ),
           Expanded(
             child: Obx(
-              () => ListView.builder(
-                itemCount: taskCtrl.tasks.length,
-                itemBuilder: (_, i) => ListTile(
-                  title: Text(taskCtrl.tasks[i]['title'] ?? ""),
-                  trailing: SizedBox(
-                    width: 100,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () async {
-                            final status = await taskCtrl
-                                .deleteTask(taskCtrl.tasks[i]['id']);
-
-                            if (status) {
-                              Get.snackbar(
-                                  "Task Deleted", "Task deleted successfully",
-                                  backgroundColor: Colors.green);
-                            } else {
-                              Get.snackbar(
-                                  "Task Error", "Failed to delete task",
-                                  backgroundColor: Colors.red);
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () async {
-                            await showDialog<String>(
-                              context: context,
-                              builder: (context) {
-                                final editCtrl = TextEditingController(
-                                    text: taskCtrl.tasks[i]['title']);
-                                return AlertDialog(
-                                  title: Text("Edit Task"),
-                                  content: TextFormField(
-                                    controller: editCtrl,
-                                    decoration:
-                                        InputDecoration(labelText: "New Title"),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter a new title';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Get.back(result: null),
-                                      child: Text("Cancel"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        if (editCtrl.text.isEmpty) {
-                                          Get.snackbar("Task Error",
-                                              "Please enter a new title",
-                                              backgroundColor: Colors.red);
-                                          return;
-                                        }
-
-                                        final status =
-                                            await taskCtrl.updateTask(
-                                          taskCtrl.tasks[i]['id'],
-                                          editCtrl.text,
-                                        );
-                                        Get.back(result: editCtrl.text);
-
-                                        if (status) {
-                                          Get.snackbar("Task Deleted",
-                                              "Task deleted successfully",
-                                              backgroundColor: Colors.green);
-                                        } else {
-                                          Get.snackbar("Task Error",
-                                              "Failed to delete task",
-                                              backgroundColor: Colors.red);
-                                        }
-                                      },
-                                      child: Text("Save"),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
+              () => taskCtrl.tasks.isEmpty
+                  ? const Center(child: Text("No tasks yet."))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      itemCount: taskCtrl.tasks.length,
+                      itemBuilder: (_, i) {
+                        final task = taskCtrl.tasks[i];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 12),
+                            title: Text(
+                              task['title'] ?? '',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.indigo.shade100,
+                              child: Text(
+                                '#${i + 1}',
+                                style: const TextStyle(
+                                  color: Colors.indigo,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.grey),
+                                  tooltip: "Edit Task",
+                                  onPressed: () async {
+                                    FocusScope.of(context).unfocus();
+                                    final editCtrl = TextEditingController(
+                                        text: task['title']);
+                                    await showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text("Edit Task"),
+                                        content: TextFormField(
+                                          controller: editCtrl,
+                                          decoration: const InputDecoration(
+                                            labelText: "New Title",
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              FocusScope.of(context).unfocus();
+                                              Get.back();
+                                            },
+                                            child: const Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              FocusScope.of(context).unfocus();
+                                              if (editCtrl.text.isNotEmpty) {
+                                                final status =
+                                                    await taskCtrl.updateTask(
+                                                        task['id'],
+                                                        editCtrl.text);
+                                                Get.back();
+                                                if (status) {
+                                                  Get.snackbar(
+                                                      "Updated", "Task updated",
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                      snackPosition:
+                                                          SnackPosition.BOTTOM);
+                                                } else {
+                                                  Get.snackbar(
+                                                      "Error", "Update failed",
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                      snackPosition:
+                                                          SnackPosition.BOTTOM);
+                                                }
+                                              }
+                                            },
+                                            child: const Text("Save"),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  tooltip: "Delete Task",
+                                  onPressed: () async {
+                                    FocusScope.of(context).unfocus();
+                                    final status =
+                                        await taskCtrl.deleteTask(task['id']);
+                                    if (status) {
+                                      Get.snackbar(
+                                        "Deleted",
+                                        "Task deleted",
+                                        backgroundColor: Colors.green,
+                                      );
+                                    } else {
+                                      Get.snackbar(
+                                        "Error",
+                                        "Deletion failed",
+                                        backgroundColor: Colors.red,
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                ),
-              ),
             ),
-          )
+          ),
         ],
       ),
     );

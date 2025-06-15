@@ -1,4 +1,3 @@
-// lib/screens/login_screen.dart
 import 'package:firebase_demo_project/controllers/auth_controller.dart';
 import 'package:firebase_demo_project/presentaion/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,81 +8,129 @@ class LoginScreen extends StatelessWidget {
   final passCtrl = TextEditingController();
   final authCtrl = Get.find<AuthController>();
 
-  LoginScreen({
-    super.key,
-  });
+  LoginScreen({super.key});
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Form(
-              key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: emailCtrl,
-                    decoration: InputDecoration(labelText: "Enter Email"),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter an email';
-                      }
-                      // Add more validation if needed
-                      return null;
-                    },
+      backgroundColor: const Color(0xFFF4F6FA),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Welcome Back!",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Login to continue",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        hintText: "Enter your email",
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter an email';
+                        }
+                        if (!value.contains("@")) {
+                          return 'Enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: passCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Password",
+                        hintText: "Enter your password",
+                        prefixIcon: Icon(Icons.lock_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: passCtrl,
-                    obscureText: true,
-                    decoration: InputDecoration(labelText: "Enter Password"),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      // Add more validation if needed
-                      return null;
-                    },
+                  onPressed: () async {
+                    FocusScope.of(context).unfocus();
+                    if (_formKey.currentState!.validate()) {
+                      await authCtrl.login(
+                        emailCtrl.text.trim(),
+                        passCtrl.text.trim(),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    "Sign In",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  // Validate the form before proceeding by global key
-
-                  if (_formKey.currentState!.validate()) {
-                    await authCtrl.login(emailCtrl.text, passCtrl.text);
-                  }
+              const SizedBox(height: 16),
+              const Text("Don't have an account?"),
+              TextButton(
+                onPressed: () {
+                  FocusScope.of(context).unfocus();
+                  Get.to(SignUpScreen());
                 },
-                child: Text("Sign In"),
+                child: const Text("Sign Up"),
               ),
-            ),
-            SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  // go to signup screen
-                  await Get.to(SignUpScreen());
-                },
-                child: Text("Sign Up"),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
