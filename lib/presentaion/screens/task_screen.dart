@@ -16,8 +16,6 @@ class _TaskScreenState extends State<TaskScreen> {
 
   final textCtrl = TextEditingController();
 
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   @override
   void dispose() {
     textCtrl.dispose();
@@ -67,7 +65,6 @@ class _TaskScreenState extends State<TaskScreen> {
               children: [
                 Expanded(
                   child: Form(
-                    key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: TextFormField(
                       controller: textCtrl,
@@ -77,12 +74,6 @@ class _TaskScreenState extends State<TaskScreen> {
                         //border: InputBorder.none,
                         prefixIcon: Icon(Icons.task_alt_outlined),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter task details';
-                        }
-                        return null;
-                      },
                     ),
                   ),
                 ),
@@ -90,10 +81,11 @@ class _TaskScreenState extends State<TaskScreen> {
                   icon: const Icon(Icons.add_circle, color: Colors.indigo),
                   onPressed: () async {
                     FocusScope.of(context).unfocus();
-                    if (_formKey.currentState?.validate() ?? false) {
+                    if (textCtrl.text.isNotEmpty) {
                       final status = await taskCtrl.addTask(textCtrl.text);
                       if (status) {
                         textCtrl.text = '';
+
                         Get.snackbar(
                           "Success",
                           "Task added successfully",
@@ -106,6 +98,12 @@ class _TaskScreenState extends State<TaskScreen> {
                           backgroundColor: Colors.red,
                         );
                       }
+                    } else {
+                      Get.snackbar(
+                        "Error",
+                        "Task details cannot be empty",
+                        backgroundColor: Colors.red,
+                      );
                     }
                   },
                 )
