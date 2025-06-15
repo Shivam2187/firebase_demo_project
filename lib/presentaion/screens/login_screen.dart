@@ -1,5 +1,5 @@
 // lib/screens/login_screen.dart
-import 'package:firebase_demo_project/main.dart';
+import 'package:firebase_demo_project/controllers/auth_controller.dart';
 import 'package:firebase_demo_project/presentaion/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
