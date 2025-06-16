@@ -67,8 +67,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter an email';
+                        if (value == null || value.isEmpty) {
+                          return null;
                         }
                         if (!value.contains('@')) {
                           return 'Enter a valid email';
@@ -89,8 +89,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a password';
+                        if (value == null || value.isEmpty) {
+                          return null;
                         }
                         if (value.length < 6) {
                           return 'Password must be at least 6 characters';
