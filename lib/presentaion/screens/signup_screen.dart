@@ -52,7 +52,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 32),
               Form(
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUnfocus,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   children: [
                     TextFormField(
