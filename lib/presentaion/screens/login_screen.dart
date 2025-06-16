@@ -1,5 +1,6 @@
 import 'package:firebase_demo_project/controllers/auth_controller.dart';
 import 'package:firebase_demo_project/presentaion/screens/signup_screen.dart';
+import 'package:firebase_demo_project/presentaion/widgets/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -54,8 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 32),
               Form(
+                autovalidateMode: AutovalidateMode.onUnfocus,
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   children: [
                     TextFormField(
@@ -70,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter an email';
                         }
                         if (!value.contains("@")) {
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter a password';
                         }
                         if (value.length < 6) {
@@ -117,11 +118,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () async {
                     FocusScope.of(context).unfocus();
-                    if (_formKey.currentState!.validate()) {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      LoaderDialog.show(context: context);
                       await authCtrl.login(
                         emailCtrl.text.trim(),
                         passCtrl.text.trim(),
                       );
+                      if (mounted) LoaderDialog.hide(context: context);
                     }
                   },
                   child: const Text(

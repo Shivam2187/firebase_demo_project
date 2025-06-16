@@ -1,4 +1,5 @@
 import 'package:firebase_demo_project/controllers/auth_controller.dart';
+import 'package:firebase_demo_project/presentaion/widgets/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -51,7 +52,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 32),
               Form(
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
+                autovalidateMode: AutovalidateMode.onUnfocus,
                 child: Column(
                   children: [
                     TextFormField(
@@ -66,7 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter an email';
                         }
                         if (!value.contains('@')) {
@@ -88,7 +89,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter a password';
                         }
                         if (value.length < 6) {
@@ -111,11 +112,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     FocusScope.of(context).unfocus();
                     if (_formKey.currentState!.validate()) {
-                      authCtrl.createUser(
-                          emailCtrl.text.trim(), passCtrl.text.trim());
+                      LoaderDialog.show(context: context);
+                      await authCtrl.createUser(
+                        emailCtrl.text.trim(),
+                        passCtrl.text.trim(),
+                      );
+                      if (mounted) LoaderDialog.hide(context: context);
                     }
                   },
                   child: const Text(

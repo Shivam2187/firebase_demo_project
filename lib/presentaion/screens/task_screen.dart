@@ -1,3 +1,4 @@
+import 'package:firebase_demo_project/presentaion/widgets/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -36,7 +37,11 @@ class _TaskScreenState extends State<TaskScreen> {
         title: const Text("Your Tasks"),
         actions: [
           IconButton(
-            onPressed: () => Get.find<AuthController>().signOut(),
+            onPressed: () async {
+              LoaderDialog.show(context: context);
+              await Get.find<AuthController>().signOut();
+              if (mounted) LoaderDialog.hide(context: context);
+            },
             icon: const Icon(Icons.logout),
             tooltip: "Logout",
           ),
@@ -64,16 +69,13 @@ class _TaskScreenState extends State<TaskScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: Form(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    child: TextFormField(
-                      controller: textCtrl,
-                      decoration: const InputDecoration(
-                        labelText: "Enter New Task Details",
-                        hintText: "Enter task details",
-                        //border: InputBorder.none,
-                        prefixIcon: Icon(Icons.task_alt_outlined),
-                      ),
+                  child: TextFormField(
+                    controller: textCtrl,
+                    decoration: const InputDecoration(
+                      labelText: "Enter New Task Details",
+                      hintText: "Enter task details",
+                      //border: InputBorder.none,
+                      prefixIcon: Icon(Icons.task_alt_outlined),
                     ),
                   ),
                 ),
@@ -82,7 +84,9 @@ class _TaskScreenState extends State<TaskScreen> {
                   onPressed: () async {
                     FocusScope.of(context).unfocus();
                     if (textCtrl.text.isNotEmpty) {
+                      LoaderDialog.show(context: context);
                       final status = await taskCtrl.addTask(textCtrl.text);
+                      LoaderDialog.hide(context: context);
                       if (status) {
                         textCtrl.text = '';
 
@@ -113,7 +117,9 @@ class _TaskScreenState extends State<TaskScreen> {
           Expanded(
             child: Obx(
               () => taskCtrl.tasks.isEmpty
-                  ? const Center(child: Text("No tasks yet."))
+                  ? const Center(
+                      child: Text("No tasks yet."),
+                    )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -128,7 +134,7 @@ class _TaskScreenState extends State<TaskScreen> {
                           ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 16, horizontal: 12),
+                                vertical: 12, horizontal: 8),
                             title: Text(
                               task['title'] ?? '',
                               style: const TextStyle(fontSize: 16),
@@ -147,6 +153,8 @@ class _TaskScreenState extends State<TaskScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(0),
                                   icon: const Icon(Icons.edit,
                                       color: Colors.grey),
                                   tooltip: "Edit Task",
@@ -154,65 +162,28 @@ class _TaskScreenState extends State<TaskScreen> {
                                     FocusScope.of(context).unfocus();
                                     final editCtrl = TextEditingController(
                                         text: task['title']);
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                        title: const Text("Edit Task"),
-                                        content: TextFormField(
-                                          controller: editCtrl,
-                                          decoration: const InputDecoration(
-                                            labelText: "New Title",
-                                          ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              FocusScope.of(context).unfocus();
-                                              Get.back();
-                                            },
-                                            child: const Text("Cancel"),
-                                          ),
-                                          TextButton(
-                                            onPressed: () async {
-                                              FocusScope.of(context).unfocus();
-                                              if (editCtrl.text.isNotEmpty) {
-                                                final status =
-                                                    await taskCtrl.updateTask(
-                                                        task['id'],
-                                                        editCtrl.text);
-                                                Get.back();
-                                                if (status) {
-                                                  Get.snackbar(
-                                                      "Updated", "Task updated",
-                                                      backgroundColor:
-                                                          Colors.green,
-                                                      snackPosition:
-                                                          SnackPosition.BOTTOM);
-                                                } else {
-                                                  Get.snackbar(
-                                                      "Error", "Update failed",
-                                                      backgroundColor:
-                                                          Colors.red,
-                                                      snackPosition:
-                                                          SnackPosition.BOTTOM);
-                                                }
-                                              }
-                                            },
-                                            child: const Text("Save"),
-                                          ),
-                                        ],
-                                      ),
+                                    await taskEditDialog(
+                                      context,
+                                      editCtrl,
+                                      task,
                                     );
                                   },
                                 ),
                                 IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(0),
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   tooltip: "Delete Task",
                                   onPressed: () async {
                                     FocusScope.of(context).unfocus();
+
+                                    LoaderDialog.show(context: context);
                                     final status =
                                         await taskCtrl.deleteTask(task['id']);
+                                    if (mounted) {
+                                      LoaderDialog.hide(context: context);
+                                    }
                                     if (status) {
                                       Get.snackbar(
                                         "Deleted",
@@ -235,6 +206,57 @@ class _TaskScreenState extends State<TaskScreen> {
                       },
                     ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<dynamic> taskEditDialog(BuildContext context,
+      TextEditingController editCtrl, Map<String, dynamic> task) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Task"),
+        content: TextFormField(
+          controller: editCtrl,
+          decoration: const InputDecoration(
+            labelText: "New Title",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              FocusScope.of(context).unfocus();
+              Get.back();
+            },
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              FocusScope.of(context).unfocus();
+              if (editCtrl.text.isNotEmpty) {
+                LoaderDialog.show(context: context);
+                final status =
+                    await taskCtrl.updateTask(task['id'], editCtrl.text);
+                if (mounted) LoaderDialog.hide(context: context);
+                Get.back();
+                if (status) {
+                  Get.snackbar(
+                    "Updated",
+                    "Task updated",
+                    backgroundColor: Colors.green,
+                  );
+                } else {
+                  Get.snackbar(
+                    "Error",
+                    "Update failed",
+                    backgroundColor: Colors.red,
+                  );
+                }
+              }
+            },
+            child: const Text("Save"),
           ),
         ],
       ),
