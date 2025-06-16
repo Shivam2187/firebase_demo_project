@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: emailCtrl,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        labelText: "Email",
+                        labelText: "Email*",
                         hintText: "Enter your email",
                         prefixIcon: Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: passCtrl,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: "Password",
+                        labelText: "Password*",
                         hintText: "Enter your password",
                         prefixIcon: Icon(Icons.lock_outline),
                         border: OutlineInputBorder(
