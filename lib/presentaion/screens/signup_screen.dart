@@ -114,13 +114,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   onPressed: () async {
                     FocusScope.of(context).unfocus();
-                    if (_formKey.currentState!.validate()) {
+                    if ((_formKey.currentState?.validate() ?? false) &&
+                        emailCtrl.text.trim().isNotEmpty &&
+                        passCtrl.text.trim().isNotEmpty) {
                       LoaderDialog.show(context: context);
                       await authCtrl.createUser(
                         emailCtrl.text.trim(),
                         passCtrl.text.trim(),
                       );
                       if (mounted) LoaderDialog.hide(context: context);
+                    } else {
+                      Get.snackbar(
+                        "Error",
+                        "Please fill in all fields correctly.",
+                        backgroundColor: Colors.red,
+                      );
                     }
                   },
                   child: const Text(

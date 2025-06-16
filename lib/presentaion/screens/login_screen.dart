@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 32),
               Form(
-                autovalidateMode: AutovalidateMode.onUnfocus,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 key: _formKey,
                 child: Column(
                   children: [
@@ -71,8 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter an email';
+                        if (value == null || value.isEmpty) {
+                          return null;
                         }
                         if (!value.contains("@")) {
                           return 'Enter a valid email';
@@ -93,8 +93,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a password';
+                        if (value == null || value.isEmpty) {
+                          return null;
                         }
                         if (value.length < 6) {
                           return 'Password must be at least 6 characters';
@@ -118,13 +118,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () async {
                     FocusScope.of(context).unfocus();
-                    if (_formKey.currentState?.validate() ?? false) {
+                    if ((_formKey.currentState?.validate() ?? false) &&
+                        emailCtrl.text.trim().isNotEmpty &&
+                        passCtrl.text.trim().isNotEmpty) {
                       LoaderDialog.show(context: context);
                       await authCtrl.login(
                         emailCtrl.text.trim(),
                         passCtrl.text.trim(),
                       );
                       if (mounted) LoaderDialog.hide(context: context);
+                    } else {
+                      Get.snackbar(
+                        "Error",
+                        "Please fill in all fields correctly.",
+                        backgroundColor: Colors.red,
+                      );
                     }
                   },
                   child: const Text(
